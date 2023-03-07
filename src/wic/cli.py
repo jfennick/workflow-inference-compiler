@@ -26,6 +26,8 @@ parser.add_argument('--no_provenance', default=False, action="store_true",
 parser.add_argument('--copy_output_files', default=False, action="store_true",
                     help='Copies output files from the cachedir to outdir/ (automatically enabled with --run_local)')
 
+parser.add_argument('--inline_inputs_file', default=False, action="store_true",
+                    help='Instead of using a separate inputs file, specify inputs using default values inlined within each workflow.')
 parser.add_argument('--parallel', default=False, action="store_true",
                     help='''When running locally, execute independent steps in parallel.
                     \nThis is required for real-time analysis, but it may cause issues with

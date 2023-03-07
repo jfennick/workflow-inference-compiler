@@ -129,9 +129,11 @@ def get_tools_cwl(config: Json, validate_plugins: bool = False,
 
                 if quiet:
                     # Capture stdout and stderr
-                    if not 'stdout' in tool:
+                    if tool['class'] == 'cwltool:ProcessGenerator':
+                        tool['run'].update({'stdout': f'{stem}.out'})
+                        tool['run'].update({'stderr': f'{stem}.err'})
+                    else:
                         tool.update({'stdout': f'{stem}.out'})
-                    if not 'stderr' in tool:
                         tool.update({'stderr': f'{stem}.err'})
                 cwl_path_abs = os.path.abspath(cwl_path_str)
                 tools_cwl[StepId(stem, plugin_ns)] = Tool(cwl_path_abs, tool)

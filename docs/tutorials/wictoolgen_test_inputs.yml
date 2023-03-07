@@ -1,0 +1,7 @@
+yaml:
+  class: File
+  path: helloworld.yml
+dir:
+  class: Directory
+  location: .
+homedir: /Users/jakefennick # Absolute path filled in automatically if using wic
