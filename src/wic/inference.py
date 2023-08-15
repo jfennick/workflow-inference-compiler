@@ -172,13 +172,15 @@ def perform_edge_inference(args: argparse.Namespace,
                     # conventions, so we need to perform some renamings here.
                     # Eventually, the CWL files themselves should be fixed.
                     arg_key_no_namespace = arg_key.split('___')[-1]
-                    arg_key_renamed = arg_key_no_namespace.replace('input_', '')
+                    arg_key_renamed = arg_key_no_namespace.replace('input_', '')  # biobb convention
+                    arg_key_renamed = arg_key_renamed.replace('inpDir', 'Dir')  # polus convention
                     for name1, name2 in renaming_conventions:
                         arg_key_renamed = arg_key_renamed.replace(name1, name2)
 
                     for out_key, out_format in format_matches:
                         out_key_no_namespace = out_key.split('___')[-1]
-                        out_key_renamed = out_key_no_namespace.replace('output_', '')
+                        out_key_renamed = out_key_no_namespace.replace('output_', '')  # biobb convention
+                        out_key_renamed = out_key_renamed.replace('outDir', 'Dir')  # polus convention
                         if arg_key_renamed == out_key_renamed:
                             name_matches.append((out_key, out_format))
 
