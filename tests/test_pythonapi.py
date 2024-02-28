@@ -16,27 +16,35 @@ from wic.api.pythonapi import (
     MissingRequiredValueError,
 )
 
-RSRC_DIR = Path(__file__).parent / "resources"
+# We should not be hardcoding relative and/or absolute paths because
+# although it is recommended that all projects be in sibling directories,
+# there is absolutely zero guarantee that users will read and follow the
+# directions and have the exact same directory structure on all their machines.
+# That's why we allow the users to configure their own search paths.
+# How do we do it? Using the auto-discovery feature:
+# https://workflow-inference-compiler.readthedocs.io/en/latest/userguide.html#auto-discovery
+# That said, for now keep this essentially as-is to minimize the diff.
+RSRC_DIR = _WIC_PATH.parent / 'image-workflows' / 'cwl_adapters'
 
 
 @pytest.fixture
 def assembler_step() -> Step:
     """Assembler Step."""
-    assembler_ = RSRC_DIR / "assembler.cwl"
+    assembler_ = RSRC_DIR / "image_assembler.cwl"
     return Step(assembler_)
 
 
 @pytest.fixture
 def renaming_step() -> Step:
     """Renaming Step."""
-    renaming_ = RSRC_DIR / "filerenaming.cwl"
+    renaming_ = RSRC_DIR / "file-renaming.cwl"
     return Step(renaming_)
 
 
 @pytest.fixture
 def basic_step() -> Step:
     """Basic Step."""
-    basic_ = RSRC_DIR / "basicfl.cwl"
+    basic_ = RSRC_DIR / "basic-flatfield-estimation.cwl"
     return Step(basic_)
 
 
@@ -50,14 +58,14 @@ def montage_step() -> Step:
 @pytest.fixture
 def omeconverter_step() -> Step:
     """Basic Step."""
-    omeconverter_ = RSRC_DIR / "omeconverter.cwl"
+    omeconverter_ = RSRC_DIR / "ome-converter.cwl"
     return Step(omeconverter_)
 
 
 @pytest.fixture(scope="session")
 def basic_step_session() -> Step:
     """Basic Step."""
-    basic_ = RSRC_DIR / "basicfl.cwl"
+    basic_ = RSRC_DIR / "basic-flatfield-estimation.cwl"
     return Step(basic_)
 
 
@@ -70,7 +78,7 @@ def steps(assembler_step: Step, renaming_step: Step, basic_step: Step) -> list[S
 @pytest.fixture
 def assembler_cwl() -> Any:
     """Assembler CWL."""
-    assembler_ = RSRC_DIR / "assembler.cwl"
+    assembler_ = RSRC_DIR / "image_assembler.cwl"
     return cu_parser.load_document_by_uri(assembler_)
 
 
@@ -104,12 +112,12 @@ def test_step1(assembler_step: Step) -> None:
     """Test Step 1."""
     st = assembler_step
     assert isinstance(st, Step)
-    assert st.clt_name == "assembler"
+    assert st.clt_name == "image_assembler"
     assert all(isinstance(i, CLTInput) for i in st.inputs)
-    with RSRC_DIR.joinpath("assembler.cwl").open("r", encoding="utf-8") as file:
+    with RSRC_DIR.joinpath("image_assembler.cwl").open("r", encoding="utf-8") as file:
         assert st.yaml == yaml.safe_load(file)
-    assert st.cwl_version == "v1.2"
-    assert st.clt_path == RSRC_DIR / "assembler.cwl"
+    assert st.cwl_version == "v1.0"
+    assert st.clt_path == RSRC_DIR / "image_assembler.cwl"
 
 
 def test_step1_cwl(assembler_step: Step, assembler_cwl: Any) -> None:
@@ -121,45 +129,45 @@ def test_step1_cwl(assembler_step: Step, assembler_cwl: Any) -> None:
 
 def test_step1_str() -> None:
     """Test Step 1 with str."""
-    st = Step(str(RSRC_DIR / "assembler.cwl"))
+    st = Step(str(RSRC_DIR / "image_assembler.cwl"))
     assert isinstance(st, Step)
-    assert st.clt_name == "assembler"
+    assert st.clt_name == "image_assembler"
     assert all(isinstance(i, CLTInput) for i in st.inputs)
-    with RSRC_DIR.joinpath("assembler.cwl").open("r", encoding="utf-8") as file:
+    with RSRC_DIR.joinpath("image_assembler.cwl").open("r", encoding="utf-8") as file:
         assert st.yaml == yaml.safe_load(file)
-    assert st.cwl_version == "v1.2"
-    assert st.clt_path == RSRC_DIR / "assembler.cwl"
+    assert st.cwl_version == "v1.0"
+    assert st.clt_path == RSRC_DIR / "image_assembler.cwl"
 
 
 def test_step2(renaming_step: Step) -> None:
     """Test Step 2."""
     st = renaming_step
     assert isinstance(st, Step)
-    assert st.clt_name == "filerenaming"
+    assert st.clt_name == "file-renaming"
     assert all(isinstance(i, CLTInput) for i in st.inputs)
-    with RSRC_DIR.joinpath("filerenaming.cwl").open("r", encoding="utf-8") as file:
+    with RSRC_DIR.joinpath("file-renaming.cwl").open("r", encoding="utf-8") as file:
         assert st.yaml == yaml.safe_load(file)
-    assert st.cwl_version == "v1.1"
-    assert st.clt_path == RSRC_DIR / "filerenaming.cwl"
+    assert st.cwl_version == "v1.0"
+    assert st.clt_path == RSRC_DIR / "file-renaming.cwl"
 
 
 def test_step3(basic_step: Step) -> None:
     """Test Step 3."""
     st = basic_step
     assert isinstance(st, Step)
-    assert st.clt_name == "basicfl"
+    assert st.clt_name == "basic-flatfield-estimation"
     assert all(isinstance(i, CLTInput) for i in st.inputs)
-    with RSRC_DIR.joinpath("basicfl.cwl").open("r", encoding="utf-8") as file:
+    with RSRC_DIR.joinpath("basic-flatfield-estimation.cwl").open("r", encoding="utf-8") as file:
         assert st.yaml == yaml.safe_load(file)
     assert st.cwl_version == "v1.0"
-    assert st.clt_path == RSRC_DIR / "basicfl.cwl"
+    assert st.clt_path == RSRC_DIR / "basic-flatfield-estimation.cwl"
 
 
 def test_cfg_yml1(renaming_step: Step) -> None:
     """Test IO cfg yaml 1."""
     st1 = renaming_step
-    st2 = Step(RSRC_DIR / "filerenaming.cwl", RSRC_DIR / "filerenaming_io.yml")
-    with RSRC_DIR.joinpath("filerenaming_io.yml").open("r", encoding="utf-8") as file:
+    st2 = Step(RSRC_DIR / "file-renaming.cwl", RSRC_DIR / "file-renaming_io.yml")
+    with RSRC_DIR.joinpath("file-renaming_io.yml").open("r", encoding="utf-8") as file:
         assert st2.cfg_yaml == yaml.safe_load(file)
     assert st1.clt_name == st2.clt_name
     assert all(isinstance(i, CLTInput) for i in st2.inputs)
@@ -168,15 +176,15 @@ def test_cfg_yml1(renaming_step: Step) -> None:
     assert [x for x in st2.inputs if x.name ==
             "filePattern"][0].value == ".*_{row:c}{col:dd}_s{s:d}_w{channel:d}.*.ome.tif"
     assert [x for x in st2.inputs if x.name == "mapDirectory"][0].value == "raw"
-    assert st2.cwl_version == "v1.1"
+    assert st2.cwl_version == "v1.0"
 
 
 def test_cfg_yml1_str(renaming_step: Step) -> None:
     """Test IO cfg yaml 1 with str."""
     st1 = renaming_step
     # mypy incorrectly complains about the type of the args
-    st2 = Step(RSRC_DIR.joinpath("filerenaming.cwl"), str(RSRC_DIR / "filerenaming_io.yml"))  # type: ignore
-    with RSRC_DIR.joinpath("filerenaming_io.yml").open("r", encoding="utf-8") as file:
+    st2 = Step(RSRC_DIR.joinpath("file-renaming.cwl"), str(RSRC_DIR / "file-renaming_io.yml"))  # type: ignore
+    with RSRC_DIR.joinpath("file-renaming_io.yml").open("r", encoding="utf-8") as file:
         assert st2.cfg_yaml == yaml.safe_load(file)
     assert st1.clt_name == st2.clt_name
     assert all(isinstance(i, CLTInput) for i in st2.inputs)
@@ -185,13 +193,13 @@ def test_cfg_yml1_str(renaming_step: Step) -> None:
     assert [x for x in st2.inputs if x.name ==
             "filePattern"][0].value == ".*_{row:c}{col:dd}_s{s:d}_w{channel:d}.*.ome.tif"
     assert [x for x in st2.inputs if x.name == "mapDirectory"][0].value == "raw"
-    assert st2.cwl_version == "v1.1"
+    assert st2.cwl_version == "v1.0"
 
 
 def test_cfg_yml2() -> None:
     """Test IO cfg yaml 2."""
-    st = Step(RSRC_DIR / "filerenaming.cwl", RSRC_DIR / "filerenaming_io.yml")
-    assert st.clt_path == RSRC_DIR / "filerenaming.cwl"
+    st = Step(RSRC_DIR / "file-renaming.cwl", RSRC_DIR / "file-renaming_io.yml")
+    assert st.clt_path == RSRC_DIR / "file-renaming.cwl"
 
 
 def test_set_inp1(assembler_step: Step) -> None:
@@ -217,7 +225,7 @@ def test_set_inp2(assembler_step: Step) -> None:
     st.preview = True
     st.timesliceNaming = False
     wic_yaml = {
-        "assembler": {
+        "image_assembler": {
             "in": {
                 "imgPath": str(RSRC_DIR),
                 "outDir": str(RSRC_DIR / "out"),
@@ -304,38 +312,38 @@ def test_inp_names1(assembler_step: Step) -> None:
 def test_inp_names2(renaming_step: Step) -> None:
     """Test input names 2."""
     st = renaming_step
-    assert sorted(st._input_names) == ["filePattern", "inpDir", "mapDirectory", "outDir", "outFilePattern"]
+    assert sorted(st._input_names) == ["filePattern", "inpDir", "mapDirectory", "outDir", "outFilePattern", "preview"]
 
 
 def test_inp_names3(basic_step: Step) -> None:
     """Test input names 3."""
     st = basic_step
-    assert sorted(st._input_names) == ["filePattern", "getDarkfield", "groupBy", "inpDir",  "outDir"]
+    assert sorted(st._input_names) == ["filePattern", "getDarkfield", "groupBy", "inpDir", "outDir", "preview"]
 
 
 @pytest.mark.parametrize("step_index", range(3))
 def test_save_cwl(steps: list[Step], step_index: int, cwl_adapters: Path) -> None:
     """Test save yaml 1."""
     st = steps[step_index]
-    if st.clt_name == "assembler":
+    if st.clt_name == "image_assembler":
         st.imgPath = RSRC_DIR
         st.preview = True
         st.timesliceNaming = False
-    if st.clt_name == "filerenaming":
+    if st.clt_name == "file-renaming":
         st.filePattern = ".*_{row:c}{col:dd}_s{s:d}_w{channel:d}.*.ome.tif"
         st.outFilePattern = "x{row:dd}_y{col:dd}_p{s:dd}_c{channel:d}.ome.tif"
         st.mapDirectory = "raw"
         st.inpDir = RSRC_DIR
-    if st.clt_name == "basicfl":
+    if st.clt_name == "basic-flatfield-estimation":
         st.filePattern = ".*_{row:c}{col:dd}_s{s:d}_w{channel:d}.*.ome.tif"
         st.getDarkfield = False
         st.groupBy = "channel"
         st.inpDir = RSRC_DIR
     st.outDir = RSRC_DIR / "out"
-    with RSRC_DIR.joinpath("assembler.cwl").open("r", encoding="utf-8") as file:
+    with RSRC_DIR.joinpath("image_assembler.cwl").open("r", encoding="utf-8") as file:
         cwl_ = yaml.safe_load(file)
     st._save_cwl(cwl_adapters)
-    with (cwl_adapters / "cwl_adapters" / "assembler.cwl").open("r", encoding="utf-8") as file:
+    with (cwl_adapters / "cwl_adapters" / "image_assembler.cwl").open("r", encoding="utf-8") as file:
         assert yaml.safe_load(file) == cwl_
 
 
