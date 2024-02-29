@@ -17,7 +17,7 @@ from wic import run_local as run_local_module
 from wic.schemas.wic_schema import get_args
 from wic.utils_graphs import get_graph_reps
 from wic.wic_types import CompilerInfo, RoseTree, StepId, Tool, Tools, YamlTree
-
+from wic import utils_cwl
 
 global_config: Tools = {}
 
@@ -87,6 +87,13 @@ class ProcessInput(BaseModel):  # pylint: disable=too-few-public-methods
     linked: bool = False
 
     def __init__(self, name: str, inp_type: Any) -> None:
+        inp_type = utils_cwl.canonicalize_type(inp_type)
+        # Need to use canonicalize normal form for all types. Otherwise,
+        # 1. we cannot use == for checking type equality
+        # 2. For optional types, we would need to check both the list form
+        # as well as for strings that end with a question mark.
+        # (Moreover, if there is a default: tag, the input is also optional.)
+        # i.e. without normal form, the following line has a subtle bug!
         if isinstance(inp_type, list) and "null" in inp_type:
             required = False
         else:
@@ -265,7 +272,10 @@ class Step(BaseModel):  # pylint: disable=too-few-public-methods
 
         if clt_path_.exists():
             try:
+                # load_document_by_uri does NOT perform full validation!
                 clt = load_document_by_uri(clt_path_)
+                # cwltool --validate *actually performs validation*!
+                # subprocess.run(['cwltool', '--validate', clt_path_], check=True)
             except Exception as exc:
                 raise InvalidCLTError(f"invalid cwl file: {clt_path_}") from exc
             with clt_path_.open("r", encoding="utf-8") as file:
@@ -328,6 +338,7 @@ class Step(BaseModel):  # pylint: disable=too-few-public-methods
     ) -> list[ProcessInput]:
         """Populate inputs from cwl.inputs."""
         # NOTE: .type in version 0.31 only!
+        # NOTE: .type_ is defined to be Optional[Any] in cwl-utils
         # NOTE: Cannot initialize .parent_obj = self here due to @classmethod
         return [ProcessInput(str(x.id), x.type_) for x in cwl_inps]
 
