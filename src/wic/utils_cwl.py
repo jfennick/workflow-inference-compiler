@@ -3,9 +3,14 @@ import copy
 from pathlib import Path
 from typing import Any, Dict, List
 
+import cwl_utils.parser as cu_parser
+
 from . import utils
 from .wic_types import (GraphReps, InternalOutputs, Namespaces, StepId, Tool, Tools,
                         WorkflowOutputs, Yaml)
+
+
+CommandInputArraySchema = cu_parser.cwl_v1_0.CommandInputArraySchema
 
 
 def maybe_add_requirements(yaml_tree: Yaml, tools: Tools, steps_keys: List[str],
@@ -231,6 +236,9 @@ def canonicalize_type(type_obj: Any) -> Any:
         Any: The JSON canonical normal form associated with type_obj
     """
     if isinstance(type_obj, str):
+        # Remove file://...#actual_type
+        type_obj = type_obj.split("#")[-1]
+
         if len(type_obj) >= 1 and type_obj[-1:] == '?':
             return ['null', canonicalize_type(type_obj[:-1])]
         if len(type_obj) >= 2 and type_obj[-2:] == '[]':
@@ -238,6 +246,8 @@ def canonicalize_type(type_obj: Any) -> Any:
     if isinstance(type_obj, Dict):
         if type_obj.get('type') == 'array':
             return {**type_obj, 'items': canonicalize_type(type_obj['items'])}
+    if isinstance(type_obj, CommandInputArraySchema):
+        return {'type': 'array', 'items': canonicalize_type(type_obj.items)}
     return type_obj
 
 
