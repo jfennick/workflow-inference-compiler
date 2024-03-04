@@ -112,7 +112,7 @@ class ProcessInput(BaseModel):  # pylint: disable=too-few-public-methods
         """Return inp_type."""
         if isinstance(inp, list):  # optional inps
             inp = inp[1]
-        return CWL_TYPES_DICT[inp]
+        return inp  # CWL_TYPES_DICT[inp]
 
     def _set_value(
         self, __value: Any, linked: bool = False
@@ -236,14 +236,16 @@ def set_input_Step_Workflow(process_self: Any, __name: str, __value: Any) -> Any
                 raise exc
 
     else:
-        obj = process_self.inputs[index]
+        # obj = process_self.inputs[index]
+        # Cannot use isinstance for Dict[...] or List[...] or List[List[...]] etc:
+        # "TypeError: Subscripted generics cannot be used with class and instance checks"
         # NOTE: "TypeError: typing.Any cannot be used with isinstance()"
-        if not obj.inp_type == Any and not isinstance(__value, obj.inp_type):
-            raise TypeError(
-                f"invalid attribute type for {obj.name}: "
-                f"got {__value.__class__.__name__}, "
-                f"expected {obj.inp_type.__name__}"
-            )
+        # if not obj.inp_type == Any and not isinstance(__value, obj.inp_type):
+        #     raise TypeError(
+        #         f"invalid attribute type for {obj.name}: "
+        #         f"got {__value.__class__.__name__}, "
+        #         f"expected {obj.inp_type.__name__}"
+        #     )
         ii_dict = {'wic_inline_input': {'key': __value}}
         process_self.inputs[index]._set_value(ii_dict)
 
