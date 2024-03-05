@@ -48,6 +48,13 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data: Any) -> bool:
         return True
 
+# Minimal example of NoAliasDumper
+# some_yaml = {'a': 1, 'b': [2, 3]}
+# nested = {'c': some_yaml, 'd': some_yaml}
+
+# print(yaml.dump(nested))
+# print(yaml.dump(nested, Dumper=NoAliasDumper))
+
 
 def write_to_disk(rose_tree: RoseTree, path: Path, relative_run_path: bool) -> None:
     """Writes the compiled CWL files and their associated yml inputs files to disk.
