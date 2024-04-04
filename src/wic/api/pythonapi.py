@@ -457,6 +457,9 @@ class Workflow(BaseModel):
     # field(default=None, init=False, repr=False)
     # TypeError: 'ModelPrivateAttr' object is not iterable
 
+    # See __setattr__ function below.
+    _setattr_means_input_val_not_output_var: bool = True
+
     def __init__(self, steps: list, workflow_name: str):
         data = {
             "process_name": workflow_name,
@@ -590,6 +593,12 @@ class Workflow(BaseModel):
     #     repr_ = ...
     #     return repr_
 
+    def setattr_means_output_var(self) -> None:
+        self._setattr_means_input_val_not_output_var = True
+
+    def setattr_means_input_val(self) -> None:
+        self._setattr_means_input_val_not_output_var = False
+
     def __setattr__(self, __name: str, __value: Any) -> Any:
         if __name in ["inputs", "outputs", "yaml", "cfg_yaml", "process_name", "_input_names", "_output_names",
                       "__private_attributes__", "__pydantic_private__"]:
@@ -600,15 +609,26 @@ class Workflow(BaseModel):
         # attribute could refer to the actual parameter / input value, or
         # attribute could refer to a formal output variable for the workflow.
         # By default, we have arbitrarily chosen the former.
-        if hasattr(self, "_input_names"):
-            if __name not in self._input_names:
-                self.add_input(__name)
-            set_input_Step_Workflow(self, __name, __value)
+        # However, the user can switch the interpretation by mutating an internal boolean state.
+        # In other words, due to oversimplifying the syntax, we are forced to expose
+        # an API with mutable internal state to the user.
+        if self._setattr_means_input_val_not_output_var:
+            if hasattr(self, "_input_names"):
+                if __name not in self._input_names:
+                    self.add_input(__name)
+                set_input_Step_Workflow(self, __name, __value)
+            else:
+                return super().__setattr__(__name, __value)
         else:
-            return super().__setattr__(__name, __value)
+            # TODO: double check the following logic.
+            if __name != "_input_names" and __name != "_output_names":  # and hasattr(self, "_output_names") ?
+                if __name in self._output_names:
+                    return self.outputs[self._output_names.index(__name)]
+                else:
+                    return self.add_output(__name)
 
     def __getattr__(self, __name: str) -> Any:
-        if __name in ["__pydantic_private__", "__class__", "__private_attributes__"]:
+        if __name in ["__pydantic_private__", "__class__", "__private_attributes__", "setattr_means_input_val_not_output_var"]:
             return super().__getattribute__(__name)
         # TODO: double check the following logic.
         if __name != "_input_names" and __name != "_output_names":  # and hasattr(self, "_output_names") ?
