@@ -117,6 +117,72 @@ def get_tools_cwl(config: Json, validate_plugins: bool = False,
             for cwl_path_str in cwl_paths:
                 if 'biobb_md' in cwl_path_str:
                     continue  # biobb_md is deprecated (in favor of biobb_gromacs)
+                # https://github.com/common-workflow-library/bio-cwl-tools
+                bio_cwl_tools_blacklist = [
+                    # parsing/loading errors due to
+                    # 1. non-canonical syntactic sugar key: val (in either inputs: or outputs:)
+                    # 2. inputs: of type list (with id:)
+                    'picard_AddOrReplaceReadGroups',
+                    'picard_CreateSequenceDictionary',
+                    'samtools_merge',
+                    'ReadGroup',
+                    'seqkit_rmdup',
+                    'metfrag',
+                    'prefetch_fastq',
+                    'GATK-SplitNCigarReads',
+                    'GATK-SelectVariants',
+                    'GATK-HaplotypeCaller',
+                    'GATK-VariantFiltration',
+                    'minimap2_sam',
+                    'minimap2_paf',
+                    'odgi_viz',
+                    'odgi_build',
+                    # validation errors
+                    'picard_SortSam',  # symbols:
+                    'picard_MarkDuplicates',  # symbols:
+                    'tb-profiler-profile',  # due to type: record
+                    'MashMap',  # symbols:
+                    'spades',  # due to type: record
+                    'manorm',  # symbols:
+                    'custom_bash',  # ['string?', 'string[]']
+                    'samtools_stats',  # due to type: record
+                    'samtools_sort',  # symbols:
+                    'kraken2',  # due to type: record
+                    'unicycler',  # symbols:
+                    'intervene',  # symbols:
+                    'bandage-image',  # symbols:
+                    'ucsc-twobit-to-fa',  # ['null', 'string[]']
+                    'gat-run',  # symbols:
+                    'bedtools_genomecov',  # symbols:
+                    'vdjtools-join-samples',  # symbols:
+                    'vdjtools-calc-diversity-stats',  # symbols:
+                    'deeptools_alignmentsieve',  # ['null', 'int[]']
+                    'Lancet',  # due to type: record
+                    'BWA-Mem2-single',  # ['null', 'ReadGroupType.yml#ReadGroupDetails']
+                    'BWA-Mem2-paired',  # ['null', 'ReadGroupType.yml#ReadGroupDetails']
+                    'BWA-Index',  # symbols:
+                    'nextclade',  # due to type: record
+                    'nanoplot',  # symbols:
+                    'snp-sites',  # due to type: record
+                    'bowtie2_align',   # ['null', 'int[]']
+                    'pca',  # ['null', 'string[]']
+                    'qualimap_rnaseq',  # symbols:
+                    'gseapy',  # symbols:
+                    'Kallisto-Quant',  # due to type: record
+                    'rgt-thor',  # ['null', 'float[]']
+                    'fastq_dump',  # symbols:
+                    'GATK-FixMateInformation',  # symbols:
+                    'GATK-MarkDuplicates',  # symbols:
+                    'GATK-ApplyBQSR',  # symbols:
+                    'GATK-BaseRecalibrator',  # symbols:
+                    'hopach',  # symbols:
+                    'cellranger-arc-aggr',  # ['null', 'string[]']
+                    'cellranger-aggr',  # ['null', 'string[]']
+                    'cellranger-arc-mkref',  # ['null', 'string[]']
+                    'cellranger-reanalyze',  # symbols:
+                ]
+                if Path(cwl_path_str).stem in bio_cwl_tools_blacklist:
+                    continue
                 # print(cwl_path)
                 with open(cwl_path_str, mode='r', encoding='utf-8') as f:
                     tool: Cwl = yaml.safe_load(f.read())
