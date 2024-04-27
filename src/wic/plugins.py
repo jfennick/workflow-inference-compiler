@@ -122,22 +122,13 @@ def get_tools_cwl(config: Json, validate_plugins: bool = False,
                     # parsing/loading errors due to
                     # 1. non-canonical syntactic sugar key: val (in either inputs: or outputs:)
                     # 2. inputs: of type list (with id:)
-                    'picard_AddOrReplaceReadGroups',
-                    'picard_CreateSequenceDictionary',
-                    'samtools_merge',
-                    'ReadGroup',
-                    'seqkit_rmdup',
-                    'metfrag',
-                    'prefetch_fastq',
-                    'GATK-SplitNCigarReads',
-                    'GATK-SelectVariants',
-                    'GATK-HaplotypeCaller',
-                    'GATK-VariantFiltration',
-                    'minimap2_sam',
-                    'minimap2_paf',
-                    'odgi_viz',
-                    'odgi_build',
+                    'ReadGroup',  # inputs: details: ReadGroupType.yml#ReadGroupDetails?
+                    'odgi_build',  # outputs: sparse_graph_index: stdout
+                    'minimap2_sam',  # outputs: alignments: stdout
+                    'minimap2_paf',  # outputs: alignments: stdout
                     # validation errors
+                    'picard_AddOrReplaceReadGroups',  # symbols:
+                    'picard_CreateSequenceDictionary',  # symbols:
                     'picard_SortSam',  # symbols:
                     'picard_MarkDuplicates',  # symbols:
                     'tb-profiler-profile',  # due to type: record
@@ -175,6 +166,10 @@ def get_tools_cwl(config: Json, validate_plugins: bool = False,
                     'GATK-MarkDuplicates',  # symbols:
                     'GATK-ApplyBQSR',  # symbols:
                     'GATK-BaseRecalibrator',  # symbols:
+                    'GATK-SelectVariants',  # ['null', 'string[]']
+                    'GATK-VariantFiltration',  # ['null', 'string[]']
+                    'GATK-HaplotypeCaller',  # ['null', 'string[]']
+                    'GATK-SplitNCigarReads',  # ['null', 'string[]']
                     'hopach',  # symbols:
                     'cellranger-arc-aggr',  # ['null', 'string[]']
                     'cellranger-aggr',  # ['null', 'string[]']
