@@ -1,12 +1,12 @@
 steps:
-- wictoolgen:
+  wictoolgen:
     in:
       yaml: helloworld.yml
 # NOTE: wictoolgen.cwl uses --inline_inputs_file to automatically
 # pass in the literal value extracted from helloworld.yml
 # To explicitly pass in a different value, uncomment the following lines
 # To pass in values for other free variables in the subworkflow,
-# first define them as shown below, then 
+# first define them as shown below, then
       # helloworld__step__1__echo___message: Goodbye World
     # inputs:
     #   helloworld__step__1__echo___message:
